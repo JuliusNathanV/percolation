@@ -11,7 +11,7 @@
 %if this is =1 then it will draw the hexagons as they're being discovered
 %(only the ones that are being explored/ on the boundary of the interface.
 %otherwise it will only draw the interface and the boundary hexagons.
-drawHexagons = 0;
+drawHexagons = 1;
 
 %percolation probability. critical is p=1/2
 p=1/2;
@@ -19,6 +19,8 @@ p=1/2;
 %rectangle width w (#cols) and height h (#rows)
 w = 150;
 h = 150; 
+
+lineWidth = 2;
 
 figure
 axis off
@@ -110,7 +112,7 @@ while facingVertex(1) >= 1 && facingVertex(1) <= h && ...
     lineEnd = yellow + displacement*(1-1i*(1/sqrt(3)))/2;
     line([real(lineStart),real(lineEnd)],...
         [imag(lineStart),imag(lineEnd)],...
-        'Color','red','LineWidth',2);
+        'Color','red','LineWidth',lineWidth);
 
     %then change the currently occupied yellow/blue vertex to the facing
     %vertex and find the new facing vertex.
@@ -130,3 +132,5 @@ while facingVertex(1) >= 1 && facingVertex(1) <= h && ...
         round(real(facing)-imag(facing)/sqrt(3))];
 
 end
+
+axis equal

@@ -8,14 +8,18 @@
 %one-to-one correspondence with boundary points with a yellow on the right
 %blue on the left, and each interface will start at a yellow-blue and end
 %on a blue-yellow.
-drawHexagons = 0;
+drawHexagons = 1;
 
 %percolation probability. critical is p=1/2
 p=1/2;
 
 %rectangle width w (#cols) and height h (#rows)
-w = 300;
-h = 300; 
+w = 150;
+h = 150;
+
+%line width for exploration interface. should make this smaller the larger
+%your domain is
+lineWidth = 2;
 
 figure
 axis off
@@ -65,13 +69,13 @@ for left = 1:w-1
     if config(1,left)==1 && config(1,left+1)==0
         yellowLeft = [1,left];
         blueRight = [1,left+1];
-        config = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons);
+        config = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons,lineWidth);
     end
     %top row
     if config(h,w+1-left) == 1 && config(h,w-left)==0
         yellowLeft = [h,w+1-left];
         blueRight = [h,w-left];
-        config = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons);
+        config = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons,lineWidth);
     end
 end
 for up = 1:h-1
@@ -79,17 +83,18 @@ for up = 1:h-1
     if config(up+1,1) == 1 && config(up,1) == 0
         yellowLeft = [up+1,1];
         blueRight = [up,1];
-        config = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons);
+        config = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons,lineWidth);
     end
     %right side
     if config(h-up,w) == 1 && config(h+1-up,w) == 0
         yellowLeft = [h-up,w];
         blueRight = [h+1-up,w];
-        config = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons);
+        config = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons,lineWidth);
     end
 end
+axis equal
 
-function [newConfig] = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons)
+function [newConfig] = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons,lineWidth)
     %given a configuration config and boundary points yellowLeft and
     %blueRight in complex form, performs an exploration process on the
     %configuration, revealing unrevealed vertices, until the path exits the
@@ -144,12 +149,12 @@ function [newConfig] = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagon
             %occupied vertices.
         % line([oldVertex(1),currentVertex(1)],...
         %     [oldVertex(2),currentVertex(2)],...
-        %     'Color','black','LineWidth',1)
+        %     'Color','black','LineWidth',lw)
             lineStart = yellow + displacement*(1+1i*(1/sqrt(3)))/2;
             lineEnd = yellow + displacement*(1-1i*(1/sqrt(3)))/2;
             line([real(lineStart),real(lineEnd)],...
                 [imag(lineStart),imag(lineEnd)],...
-                'Color','red','LineWidth',2);
+                'Color','red','LineWidth',lineWidth);
         
             %then change the currently occupied yellow/blue vertex to the facing
             %vertex and find the new facing vertex.
@@ -177,5 +182,5 @@ function [newConfig] = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagon
         lineEnd = yellow + displacement*(1-1i*(1/sqrt(3)))/2;
         line([real(lineStart),real(lineEnd)],...
             [imag(lineStart),imag(lineEnd)],...
-            'Color','red','LineWidth',2);
+            'Color','red','LineWidth',lineWidth);
 end
