@@ -14,12 +14,19 @@ drawHexagons = 1;
 p=1/2;
 
 %rectangle width w (#cols) and height h (#rows)
-w = 150;
-h = 150;
+w = 50;
+h = 50;
 
 %line width for exploration interface. should make this smaller the larger
 %your domain is
 lineWidth = 2;
+%colours for yellow/blue hexagons. top row is RGB for 'blue' hexagons,
+%bottom row is the RGB for 'yellow' hexagons.
+%default is [0 0 1; 1 1 0] for yellow/blue.
+faceColor = [0 0 0; 1 1 1];
+%interface color. RGB for interface colour. default is [1 0 0] for red or
+%[0 0 0] for black
+interfaceColor = [185 145 220]/255;
 
 figure
 axis off
@@ -40,25 +47,41 @@ config(:,w) = binornd(1,p,[h,1]);
 %draw boundary vertices
 %top and bottom
 for j = 1:w
+%     hex = translate(hex0,[real(j+1*exp(1i*pi()/3)),...
+%         imag(j+1*exp(1i*pi()/3))]);
+%     plot(hex,'FaceColor', ...
+%         [config(1,j), config(1,j), 1-config(1,j)])
+%     hex = translate(hex0,[real(j+h*exp(1i*pi()/3)),...
+%         imag(j+h*exp(1i*pi()/3))]);
+%     plot(hex,'FaceColor', ...
+%         [config(h,j), config(h,j), 1-config(h,j)])
     hex = translate(hex0,[real(j+1*exp(1i*pi()/3)),...
         imag(j+1*exp(1i*pi()/3))]);
     plot(hex,'FaceColor', ...
-        [config(1,j), config(1,j), 1-config(1,j)])
+        faceColor(config(1,j)+1,:))
     hex = translate(hex0,[real(j+h*exp(1i*pi()/3)),...
         imag(j+h*exp(1i*pi()/3))]);
     plot(hex,'FaceColor', ...
-        [config(h,j), config(h,j), 1-config(h,j)])
+        faceColor(config(h,j)+1,:))
 end
 %left and right
 for i = 2:(h-1)
+%     hex = translate(hex0,[real(1+i*exp(1i*pi()/3)),...
+%         imag(1+i*exp(1i*pi()/3))]);
+%     plot(hex,'FaceColor', ...
+%         [config(i,1), config(i,1), 1-config(i,1)])
+%     hex = translate(hex0,[real(w+i*exp(1i*pi()/3)),...
+%         imag(w+i*exp(1i*pi()/3))]);
+%     plot(hex,'FaceColor', ...
+%         [config(i,w), config(i,w), 1-config(i,w)])
     hex = translate(hex0,[real(1+i*exp(1i*pi()/3)),...
         imag(1+i*exp(1i*pi()/3))]);
     plot(hex,'FaceColor', ...
-        [config(i,1), config(i,1), 1-config(i,1)])
+        faceColor(config(i,1)+1,:))
     hex = translate(hex0,[real(w+i*exp(1i*pi()/3)),...
         imag(w+i*exp(1i*pi()/3))]);
     plot(hex,'FaceColor', ...
-        [config(i,w), config(i,w), 1-config(i,w)])
+        faceColor(config(i,w)+1,:))
 end
 
 %go through all of the bottom row pairs of adjacent vertices. if the left
@@ -69,13 +92,15 @@ for left = 1:w-1
     if config(1,left)==1 && config(1,left+1)==0
         yellowLeft = [1,left];
         blueRight = [1,left+1];
-        config = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons,lineWidth);
+        config = exploration(yellowLeft,blueRight,config,w,h,p,...
+            drawHexagons,lineWidth,faceColor,interfaceColor);
     end
     %top row
     if config(h,w+1-left) == 1 && config(h,w-left)==0
         yellowLeft = [h,w+1-left];
         blueRight = [h,w-left];
-        config = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons,lineWidth);
+        config = exploration(yellowLeft,blueRight,config,w,h,p,...
+            drawHexagons,lineWidth,faceColor,interfaceColor);
     end
 end
 for up = 1:h-1
@@ -83,18 +108,29 @@ for up = 1:h-1
     if config(up+1,1) == 1 && config(up,1) == 0
         yellowLeft = [up+1,1];
         blueRight = [up,1];
-        config = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons,lineWidth);
+        config = exploration(yellowLeft,blueRight,config,w,h,p,...
+            drawHexagons,lineWidth,faceColor,interfaceColor);
     end
     %right side
     if config(h-up,w) == 1 && config(h+1-up,w) == 0
         yellowLeft = [h-up,w];
         blueRight = [h+1-up,w];
-        config = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons,lineWidth);
+        config = exploration(yellowLeft,blueRight,config,w,h,p,...
+            drawHexagons,lineWidth,faceColor,interfaceColor);
     end
 end
 axis equal
 
-function [newConfig] = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagons,lineWidth)
+%
+%
+%
+%FUNCTION FOR EXPLORATION PROCESS
+%
+%
+%
+
+function [newConfig] = exploration(yellowLeft,blueRight,config,w,h,p,...
+    drawHexagons,lineWidth,faceColor,interfaceColor)
     %given a configuration config and boundary points yellowLeft and
     %blueRight in complex form, performs an exploration process on the
     %configuration, revealing unrevealed vertices, until the path exits the
@@ -113,10 +149,10 @@ function [newConfig] = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagon
         displacement = blue-yellow;
         facing = yellow + displacement*exp(1i*pi()/3);
         
-        yellowVertex = [round(2*imag(yellow)/sqrt(3)),...
-            round(real(yellow)-imag(yellow)/sqrt(3))];
-        blueVertex = [round(2*imag(blue)/sqrt(3)),...
-            round(real(blue)-imag(blue)/sqrt(3))];
+%         yellowVertex = [round(2*imag(yellow)/sqrt(3)),...
+%             round(real(yellow)-imag(yellow)/sqrt(3))];
+%         blueVertex = [round(2*imag(blue)/sqrt(3)),...
+%             round(real(blue)-imag(blue)/sqrt(3))];
         facingVertex =[round(2*imag(facing)/sqrt(3)),...
             round(real(facing)-imag(facing)/sqrt(3))];
         
@@ -141,8 +177,10 @@ function [newConfig] = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagon
                     color = config(facingVertex(1),facingVertex(2)) ;
                     hexCenterCoords = [real(facing),imag(facing)];
                     hex = translate(hex0,hexCenterCoords);
+%                     plot(hex,'FaceColor', ...
+%                         [color, color, 1-color])
                     plot(hex,'FaceColor', ...
-                        [color, color, 1-color])
+                        faceColor(color+1,:))
                 end
             end
             %walk along the interface (draw the line segment between the currently
@@ -154,7 +192,7 @@ function [newConfig] = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagon
             lineEnd = yellow + displacement*(1-1i*(1/sqrt(3)))/2;
             line([real(lineStart),real(lineEnd)],...
                 [imag(lineStart),imag(lineEnd)],...
-                'Color','red','LineWidth',lineWidth);
+                'Color',interfaceColor,'LineWidth',lineWidth);
         
             %then change the currently occupied yellow/blue vertex to the facing
             %vertex and find the new facing vertex.
@@ -166,10 +204,10 @@ function [newConfig] = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagon
             displacement = blue-yellow;
             facing = yellow + displacement*exp(1i*pi()/3);
             
-            yellowVertex = [round(2*imag(yellow)/sqrt(3)),...
-                round(real(yellow)-imag(yellow)/sqrt(3))];
-            blueVertex = [round(2*imag(blue)/sqrt(3)),...
-                round(real(blue)-imag(blue)/sqrt(3))];
+%             yellowVertex = [round(2*imag(yellow)/sqrt(3)),...
+%                 round(real(yellow)-imag(yellow)/sqrt(3))];
+%             blueVertex = [round(2*imag(blue)/sqrt(3)),...
+%                 round(real(blue)-imag(blue)/sqrt(3))];
             facingVertex =[round(2*imag(facing)/sqrt(3)),...
                 round(real(facing)-imag(facing)/sqrt(3))];
         
@@ -182,5 +220,5 @@ function [newConfig] = exploration(yellowLeft,blueRight,config,w,h,p,drawHexagon
         lineEnd = yellow + displacement*(1-1i*(1/sqrt(3)))/2;
         line([real(lineStart),real(lineEnd)],...
             [imag(lineStart),imag(lineEnd)],...
-            'Color','red','LineWidth',lineWidth);
+            'Color',interfaceColor,'LineWidth',lineWidth);
 end

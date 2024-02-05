@@ -17,10 +17,21 @@ drawHexagons = 1;
 p=1/2;
 
 %rectangle width w (#cols) and height h (#rows)
-w = 150;
-h = 150; 
+w = 50;
+h = 50; 
 
-lineWidth = 2;
+%line width for exploration interface. should make this smaller the larger
+%your domain is
+lineWidth = 3;
+%colours for yellow/blue hexagons. top row is RGB for 'blue' hexagons,
+%bottom row is the RGB for 'yellow' hexagons.
+%default is [0 0 1; 1 1 0] for yellow/blue.
+faceColor = [0 0 0; 1 1 1];
+%interface color. RGB for interface colour. default is [1 0 0] for red or
+%[0 0 0] for black
+%[185 145 220]/255 for light lilac
+%[165 110 215]/255; for purple
+interfaceColor = [185 145 220]/255;
 
 figure
 axis off
@@ -42,25 +53,33 @@ config(:,w) = 0;
 %draw boundary vertices
 %top and bottom
 for j = 1:w
+%     hex = translate(hex0,[real(j+1*exp(1i*pi()/3)),...
+%         imag(j+1*exp(1i*pi()/3))]);
+%     plot(hex,'FaceColor', ...
+%         [config(1,j), config(1,j), 1-config(1,j)])
+%     hex = translate(hex0,[real(j+h*exp(1i*pi()/3)),...
+%         imag(j+h*exp(1i*pi()/3))]);
+%     plot(hex,'FaceColor', ...
+%         [config(h,j), config(h,j), 1-config(h,j)])
     hex = translate(hex0,[real(j+1*exp(1i*pi()/3)),...
         imag(j+1*exp(1i*pi()/3))]);
     plot(hex,'FaceColor', ...
-        [config(1,j), config(1,j), 1-config(1,j)])
+        faceColor(config(1,j)+1,:))
     hex = translate(hex0,[real(j+h*exp(1i*pi()/3)),...
         imag(j+h*exp(1i*pi()/3))]);
     plot(hex,'FaceColor', ...
-        [config(h,j), config(h,j), 1-config(h,j)])
+        faceColor(config(h,j)+1,:))
 end
 %left and right
 for i = 2:(h-1)
     hex = translate(hex0,[real(1+i*exp(1i*pi()/3)),...
         imag(1+i*exp(1i*pi()/3))]);
     plot(hex,'FaceColor', ...
-        [config(i,1), config(i,1), 1-config(i,1)])
+        faceColor(config(i,1)+1,:))
     hex = translate(hex0,[real(w+i*exp(1i*pi()/3)),...
         imag(w+i*exp(1i*pi()/3))]);
     plot(hex,'FaceColor', ...
-        [config(i,w), config(i,w), 1-config(i,w)])
+        faceColor(config(i,w)+1,:))
 end
 
 %keep track of the boundary of two vertices you're on. start between (1,1)
@@ -100,7 +119,9 @@ while facingVertex(1) >= 1 && facingVertex(1) <= h && ...
             hexCenterCoords = [real(facing),imag(facing)];
             hex = translate(hex0,hexCenterCoords);
             plot(hex,'FaceColor', ...
-                [color, color, 1-color])
+                faceColor(color+1,:))
+%                 [color, color, 1-color])
+
         end
     end
     %walk along the interface (draw the line segment between the currently
@@ -112,7 +133,7 @@ while facingVertex(1) >= 1 && facingVertex(1) <= h && ...
     lineEnd = yellow + displacement*(1-1i*(1/sqrt(3)))/2;
     line([real(lineStart),real(lineEnd)],...
         [imag(lineStart),imag(lineEnd)],...
-        'Color','red','LineWidth',lineWidth);
+        'Color',interfaceColor,'LineWidth',lineWidth);
 
     %then change the currently occupied yellow/blue vertex to the facing
     %vertex and find the new facing vertex.
